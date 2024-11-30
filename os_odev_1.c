@@ -27,7 +27,7 @@ int main()
             NULL,                    // Çevre değişkenleri
             NULL,                    // Çalışma dizini
             &si,                     // STARTUPINFO yapısı
-            &pi                      // PROCESS_INFORMATION yapısı
+            &pi                      // PROCESS_INFORMATION yapısı.
             ))
     {
         printf("\nProcess olusturulamadi. Hata kodu: %d\n", GetLastError());
