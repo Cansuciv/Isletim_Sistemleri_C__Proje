@@ -1,19 +1,58 @@
-void child_process()
+#include <windows.h>
+#include <stdio.h>
+#include <tchar.h>
+
+int main()
 {
-    FILE *file;
+    STARTUPINFO si;
+    PROCESS_INFORMATION pi;
+    DWORD parentPID = GetCurrentProcessId(); // Parent'ın PID'si
 
-    // Dosyayı açmayı dene
-    file = fopen("ornek.txt", "r");
+    // STARTUPINFO ve PROCESS_INFORMATION yapılarını sıfırla
+    ZeroMemory(&si, sizeof(si));
+    si.cb = sizeof(si);
+    ZeroMemory(&pi, sizeof(pi));
 
-    if (file == NULL)
+    // Çalıştırılacak komut: `type ornek.txt`
+    TCHAR command[] = _T("cmd.exe /C type ornek.txt");
+
+    // Child process oluştur
+    if (!CreateProcess(
+            NULL,
+            command,
+            NULL,
+            NULL,
+            FALSE,
+            0,
+            NULL,
+            NULL,
+            &si,
+            &pi))
     {
-        // Dosya bulunamazsa, abort() ile çıkış yap
-        printf("Dosya bulunamadi, child process zorla cikacak.\n");
-        abort(); // Hata durumunda programı zorla sonlandırır
+        printf("CreateProcess failed (%d).\n", GetLastError());
+        return 1;
     }
 
-    // Dosya başarıyla açılırsa, normal şekilde çık
-    printf("Dosya basariyla acildi, child process duzgun bir sekilde cikacak.\n");
-    fclose(file);
-    exit(0); // Başarılı çıkış
+    // Parent process: Child process bilgilerini yazdır
+    printf("Parent Process: PID: %lu \n", parentPID);
+    printf("Child Process olusturuldu: PID: %lu \n", pi.dwProcessId);
+
+    // Child process'in bitmesini bekle
+    WaitForSingleObject(pi.hProcess, INFINITE);
+
+    DWORD exitCode;
+    if (GetExitCodeProcess(pi.hProcess, &exitCode))
+    {
+        printf("Child Process tamamlandi, cikis durumu: %ld\n", exitCode);
+    }
+    else
+    {
+        printf("Child Process'in cikis durumu alinamadi.\n");
+    }
+
+    // Handle'ları kapat
+    CloseHandle(pi.hProcess);
+    CloseHandle(pi.hThread);
+
+    return 0;
 }

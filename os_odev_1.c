@@ -1,48 +1,55 @@
-#include <stdio.h>
-#include <stdlib.h>
 #include <windows.h>
+#include <stdio.h>
+#include <tchar.h>
 
 int main()
 {
-    STARTUPINFO si;         // child process’in başlatılacağı ortam hakkında bilgi verir.
-    PROCESS_INFORMATION pi; // yeni bir işlem başlatıldığında işlem hakkında bilgi sağlar (handle’lar, işlem kimlikleri vb.).
+    STARTUPINFO si;
+    PROCESS_INFORMATION pi;
+    DWORD parentPID = GetCurrentProcessId(); // Parent'ın PID'sinin alınması
 
-    // STARTUPINFO ve PROCESS_INFORMATION yapılarının sıfırlanması.
-    ZeroMemory(&si, sizeof(si)); // STARTUPINFO yapısının tüm üyelerini sıfırlamak.
-    si.cb = sizeof(si);          // STARTUPINFO yapısının boyutunu belirtmek.
-    ZeroMemory(&pi, sizeof(pi)); // PROCESS_INFORMATION yapısının tüm üyelerini sıfırlamak.
+    // STARTUPINFO ve PROCESS_INFORMATION yapılarını sıfırla
+    ZeroMemory(&si, sizeof(si));
+    si.cb = sizeof(si);
+    ZeroMemory(&pi, sizeof(pi));
 
-    // Parent process ID
-    DWORD parentProcessId = GetCurrentProcessId();
-    printf("\nAna Process ID: %lu\n", parentProcessId);
+    // Çalıştırılacak komut: `type ornek.txt`
+    TCHAR command[] = _T("cmd.exe /C type ornek.txt");
 
-    // Child process'in oluşturulması
-    if (!CreateProcess(              // fork() windows karşılığı
-            NULL,                    // Program adı (NULL olursa komut satırını kullanır).
-            "cmd /c type ornek.txt", // Çalıştırılacak komut (örneğin, dosya içeriğini yazdırma).
-            NULL,                    // Process için güvenlik özellikleri.
-            NULL,                    // Thread için güvenlik özellikleri.
-            FALSE,                   // Child process'in parent ile etkileşimi (miras).
-            0,                       // Durum bayrakları
-            NULL,                    // Çevre değişkenleri
-            NULL,                    // Çalışma dizini
-            &si,                     // STARTUPINFO yapısı
-            &pi                      // PROCESS_INFORMATION yapısı.
-            ))
+    // Child process oluştur ve child processin dosya içeriğini ekrana yazdırması
+    if (!CreateProcess(
+            NULL,
+            command,
+            NULL,
+            NULL,
+            FALSE,
+            0,
+            NULL,
+            NULL,
+            &si,
+            &pi))
     {
-        printf("\nProcess olusturulamadi. Hata kodu: %d\n", GetLastError());
-        return 1; // Başarısız olduğunda hata kodu döndür
+        printf("\nCreateProcess basarisiz(%d).\n", GetLastError()); // Child process oluşturulamadığında hata mesajı
+        return 1;
     }
 
-    // Child process ID
-    printf("\nChild Process ID: %lu\n", pi.dwProcessId);
+    // Parent process: Child process bilgilerini yazdır
+    printf("\nParent Process PID: %lu \n", parentPID);                   // Parent process id
+    printf("\nChild Process olusturuldu PID: %lu \n\n", pi.dwProcessId); // Child process id
 
-    // Parent process, child process'in bitmesini bekler
-    WaitForSingleObject(pi.hProcess, INFINITE); // wait() windows karşılığı
+    WaitForSingleObject(pi.hProcess, INFINITE); // Child process'in bitmesini bekleme
 
-    printf("\nChild process tamamlandi.");
+    DWORD exitCode; // çıkış durumunun kontrolu
+    if (GetExitCodeProcess(pi.hProcess, &exitCode))
+    {
+        printf("\nChild Process tamamlandi, cikis durumu: %ld\n", exitCode); // Hatasız bir şekilde çalışırsa
+    }
+    else
+    {
+        printf("\nChild Process'in cikis durumu alinamadi.\n"); // Hatalı çalışırsa
+    }
 
-    // Kaynakları serbest bırak
+    // Handle'ları kapat
     CloseHandle(pi.hProcess);
     CloseHandle(pi.hThread);
 
