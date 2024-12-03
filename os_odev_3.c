@@ -15,7 +15,7 @@ void create_file()
     {
         fprintf(file, "Bu dosya 1.cocuk surec tarafindan olusturuldu. "); // oluşturulan ornek.txt'nin içerisine yazılacak
         fclose(file);
-        printf("Dosya olusturuldu.\n");
+        printf("1. child process: Dosya olusturuldu.\n");
     }
 }
 
@@ -32,7 +32,7 @@ void write_file()
     {
         fprintf(file, "Veri 2.cocuk surec tarafindan eklendi.\n"); // oluşturulan ornek.txt'nin içerisine yazılacak
         fclose(file);
-        printf("Veri dosyaya eklendi.\n");
+        printf("2. child process: Veri dosyaya eklendi.\n");
     }
 }
 
@@ -48,7 +48,7 @@ void read_file()
     }
     else
     {
-        printf("Dosya icerigi:");
+        printf("3.child process: Dosya icerigi --- ");
         while (fgets(buffer, sizeof(buffer), file) != NULL)
         {
             printf("%s", buffer);
@@ -100,7 +100,7 @@ int main()
     CloseHandle(hThread2);
     CloseHandle(hThread3);
 
-    printf("Tum cocuk surecler tamamlandi.\n");
+    printf("Ana process: Tum cocuk surecler tamamlandi.\n");
 
     return 0;
 }

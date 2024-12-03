@@ -11,12 +11,12 @@ int main()
     si.cb = sizeof(si);
     ZeroMemory(&pi, sizeof(pi));
 
-    char command[] = "os_odev_2.exe"; // Child process olarak çalıştırılacak komut dosyası
+    TCHAR command[] = TEXT("C:\\Windows\\System32\\cmd.exe /C type ornek.exe");
 
-    // Child process'i oluşturlması
+    // Child process oluşturulması
     if (!CreateProcess(NULL, command, NULL, NULL, FALSE, 0, NULL, NULL, &si, &pi))
     {
-        printf("Process baslatilamadi. Hata kodu: %d\n", GetLastError());
+        printf("Process baslatilamadi. Hata kodu: %d \n", GetLastError());
         return 1;
     }
 
@@ -37,7 +37,7 @@ int main()
     }
     else
     {
-        printf("Exit kodu alinamadi. Hata kodu: %d\n", GetLastError()); // exit code alınamazsa
+        printf("Exit kodu alinamadi. Hata kodu: %d \n", GetLastError()); // exit code alınamazsa
     }
 
     // Parent process child handle'larını kapatıyor
